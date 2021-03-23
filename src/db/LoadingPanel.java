@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class LoadingPanel extends JFrame {
@@ -22,6 +23,7 @@ public class LoadingPanel extends JFrame {
 					e.printStackTrace();
 				}
 			}
+			JOptionPane.showMessageDialog(null, "DB셋팅 완료","정보",JOptionPane.INFORMATION_MESSAGE);
 			dispose();
 		}).start();
 		setSize(260,280);
