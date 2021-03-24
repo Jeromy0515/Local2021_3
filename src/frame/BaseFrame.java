@@ -1,5 +1,6 @@
 package frame;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
@@ -115,6 +116,7 @@ public class BaseFrame extends JFrame{
 	public static ImageIcon getImage(int width, int height, String whName) {
 		return new ImageIcon(
 				Toolkit.getDefaultToolkit().getImage("./제3과제 datafile/웨딩홀/" + whName + "/" + whName + imageNum +".jpg").getScaledInstance(width, height, Image.SCALE_SMOOTH));
+		
 	}
 	
 	//getimage 오버로딩하기

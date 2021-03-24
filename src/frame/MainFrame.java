@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DecimalFormat;
@@ -63,7 +65,8 @@ public class MainFrame extends BaseFrame {
 	class WhPanel extends JPanel {
 		public WhPanel(String whName, int count, int price, String address) { //
 			setLayout(new BorderLayout());
-			JLabel image = new JLabel(getImage(250, 150, whName));
+			JLabel image = new JLabel(new ImageIcon(
+					Toolkit.getDefaultToolkit().getImage("./제3과제 datafile/웨딩홀/" + whName + "/" + whName +"1.jpg").getScaledInstance(250,150,Image.SCALE_SMOOTH)));
 			add(image, BorderLayout.LINE_START);
 			JPanel centerPanel = createComponent(new JPanel(new GridLayout(0,1,0,5)),732,150);
 			centerPanel.add(createLabel("예약: " + count + "건"));

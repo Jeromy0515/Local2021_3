@@ -23,7 +23,8 @@ public class FriendListFrame extends BaseFrame{
 	JTextField nameField = new JTextField(15);
 	JCheckBox cbAll = new JCheckBox("전체 선택");
 	JScrollPane scrollPane;
-		
+	String pmNum;
+	
 	DefaultTableModel model = new DefaultTableModel(null," ,이름,생년월일,전화번호".split(",")) {
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
@@ -41,8 +42,10 @@ public class FriendListFrame extends BaseFrame{
         };
 	};
 	
-	public FriendListFrame() {
+	public FriendListFrame(String pmNum) {
 		super("친구목록", 600, 500);
+		
+		this.pmNum = pmNum;
 		
 		table.getColumn("이름").setPreferredWidth(200);
 		table.getColumn("생년월일").setPreferredWidth(200);
@@ -73,7 +76,7 @@ public class FriendListFrame extends BaseFrame{
 		northPanel.add(createButton("초기화", e->resetBtnAct()));
 		
 		JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		southPanel.add(createButton("보내기", e->openFrame(new MainFrame())));
+		southPanel.add(createButton("보내기", e->sendBtnAct()));
 		
 		add(northPanel,BorderLayout.NORTH);
 		add(scrollPane,BorderLayout.CENTER);
@@ -96,6 +99,32 @@ public class FriendListFrame extends BaseFrame{
 				table.setValueAt(false, i, 0);
 			}
 		}
+	}
+	
+	private void sendBtnAct() {
+		boolean check = false; //친구 선택햇는지 체크
+		for (int row = 0; row < table.getRowCount(); row++){
+			if(Boolean.valueOf(table.getValueAt(row, 0).toString())) {
+				check = true;
+				try (PreparedStatement pst = conn.prepareStatement("insert into invitation values(0,?,?,(select u_No from user where u_Phone = ?))")){
+					pst.setObject(1, pmNum);
+					pst.setObject(2, user_No);
+					pst.setObject(3, table.getValueAt(row, 3));
+					pst.execute();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		if(!check) {
+			errorMessage("청첩장을 보낼 친구를 선택해주세요.");
+			return;
+		}
+		
+		informMessage("청첩장을 보냈습니다.");
+		openFrame(new MainFrame());
+		
 	}
 	
 	private void resetBtnAct() {
@@ -124,6 +153,6 @@ public class FriendListFrame extends BaseFrame{
 	
 	
 	public static void main(String[] args) {
-		new FriendListFrame().setVisible(true);
+		new FriendListFrame("0502").setVisible(true);
 	}
 }

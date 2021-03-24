@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
@@ -90,11 +92,8 @@ public class SearchFrame extends BaseFrame {
 		btnPanel.add(createButton("초기화", e -> resetBtnAct()));
 		btnPanel.setBounds(610, 216, 200, 40);
 
-		createWhPanel(
-				"select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n"
-				+ "from weddinghall as wh\r\n"
-				+ "left join division as d on d.wh_No = wh.wh_No\r\n"
-				+ "left join mealtype as m on d.m_No = m.m_No\r\n"
+		createWhPanel("select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n" + "from weddinghall as wh\r\n"
+				+ "left join division as d on d.wh_No = wh.wh_No\r\n" + "left join mealtype as m on d.m_No = m.m_No\r\n"
 				+ "left join weddingtype as wty on d.wty_No = wty.wty_No;");
 		whInformPanel.setBounds(5, 260, 780, 100 * panelCnt);
 		contentsPanel = createComponent(new JPanel(null), 750, 260 + (100 * panelCnt));
@@ -110,7 +109,8 @@ public class SearchFrame extends BaseFrame {
 	private class WhPanel extends JPanel {
 		public WhPanel(String whName, String address, String whType, String mealType, int capacity, int hallPrice) {
 			setLayout(new BorderLayout());
-			JLabel image = new JLabel(getImage(150, 90, whName));
+			JLabel image = new JLabel(new ImageIcon(
+					Toolkit.getDefaultToolkit().getImage("./제3과제 datafile/웨딩홀/" + whName + "/" + whName +"1.jpg").getScaledInstance(150, 90, Image.SCALE_SMOOTH)));
 			image.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 			setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
@@ -120,16 +120,16 @@ public class SearchFrame extends BaseFrame {
 			labelPanel.add(whNameLabel);
 			labelPanel.add(createLabel("주소: " + address + "/"));
 			labelPanel.add(createLabel("예식형태: " + whType + "/식사종류: " + mealType + "/"));
-			labelPanel.add(
-					createLabel("수용인원: " + capacity + "/홀사용료: " + String.format("%,d",hallPrice) + "원"));
+			labelPanel.add(createLabel("수용인원: " + capacity + "/홀사용료: " + String.format("%,d", hallPrice) + "원"));
 			labelPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 			ImageIcon imageIcon = getImage(380, 200, whName);
 			JButton chooseBtn = createComponent(
 					createButtonWithoutMargin("선택",
-							e -> openFrame(new WeddingHallFrame(new UserInform(whName, address, capacity, hallPrice, whType, mealType, 0, 0, "")))),
+							e -> openFrame(new WeddingHallFrame(
+									new UserInform(whName, address, capacity, hallPrice, whType, mealType, 0, 0, "")))),
 					70, 80);
-			
+
 			JPanel btnPanel = createComponentWithBorder(new JPanel(new BorderLayout()), 70, 100,
 					BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			btnPanel.add(chooseBtn);
@@ -161,10 +161,8 @@ public class SearchFrame extends BaseFrame {
 
 	private void searchBtnAct() {
 
-		StringBuilder sql = new StringBuilder(
-				"select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n"
-				+ "from weddinghall as wh\r\n"
-				+ "left join division as d on d.wh_No = wh.wh_No\r\n"
+		StringBuilder sql = new StringBuilder("select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n"
+				+ "from weddinghall as wh\r\n" + "left join division as d on d.wh_No = wh.wh_No\r\n"
 				+ "left join mealtype as m on d.m_No = m.m_No\r\n"
 				+ "left join weddingtype as wty on d.wty_No = wty.wty_No\r\n" + "where (");
 		ArrayList<String> regionSelectionList = new ArrayList<String>();
@@ -228,7 +226,7 @@ public class SearchFrame extends BaseFrame {
 				sql.append("wh_People > " + minPeople + " and wh_People < " + maxPeople + ")");
 		}
 
-		if (minPrice != 0 && maxPrice != 0) {
+		if (minPrice != 0 || maxPrice != 0) {
 			if (!isEmpty(regionSelectionList, wtySelectionList, mtySelectionList) || (minPeople != 0 || maxPeople != 0))
 				sql.append(" and ( ");
 
@@ -267,8 +265,10 @@ public class SearchFrame extends BaseFrame {
 
 		whInformPanel.removeAll();
 
-		createWhPanel("select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n" + "from weddinghall as wh\r\n"
-				+ "left join division as d on d.wh_No = wh.wh_No\r\n" + "left join mealtype as m on d.m_No = m.m_No\r\n"
+		createWhPanel("select wh_Name,wh_Add,wty_Name,m_Name,wh_People,wh_Price\r\n"
+				+ "from weddinghall as wh\r\n"
+				+ "left join division as d on d.wh_No = wh.wh_No\r\n" 
+				+ "left join mealtype as m on d.m_No = m.m_No\r\n"
 				+ "left join weddingtype as wty on d.wty_No = wty.wty_No;");
 		contentsPanel.setPreferredSize(new Dimension(750, 260 + (100 * panelCnt)));
 		contentsPanel.revalidate();

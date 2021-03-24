@@ -11,18 +11,16 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import model.UserInform;
 
@@ -32,9 +30,11 @@ public class WeddingHallFrame extends BaseFrame {
 	JTextField tfIv;
 	JPanel imagePanel;
 	JLabel mainLabel;
-	JButton payBtn = createComponent(createButtonWithoutMargin("결제", e->payBtnAct()), 100, 30);
+	JButton payBtn = createComponent(createButtonWithoutMargin("결제", e -> payBtnAct()), 100, 30);
 	JButton ivBtn = createComponent(createButtonWithoutMargin("청첩장 선택",
-					e -> openFrame(new InvitationFrame(mainLabel.getText(),tfIv.getText().isEmpty()?1:Integer.parseInt(tfIv.getText()),tfs[0].getText(), tfs[7].getText(), tfIv))),
+			e -> openFrame(new InvitationFrame(mainLabel.getText(),
+					tfIv.getText().isEmpty() ? 1 : Integer.parseInt(tfIv.getText()), tfs[0].getText(), tfs[7].getText(),
+					tfIv))),
 			100, 30);
 	boolean stop = false;
 	static boolean ivCheck = false;
@@ -42,13 +42,13 @@ public class WeddingHallFrame extends BaseFrame {
 	int index = 0;
 	int numOfimageList = 1;
 	UserInform ui;
-	
 
 	public WeddingHallFrame(UserInform ui) {
 		super("웨딩홀", 950, 470);
-
-		this.ui = ui;
 		
+		this.ui = ui;
+		stop = false;
+
 		imagePanel = createComponent(new JPanel() {
 			@Override
 			public void paint(Graphics g) {
@@ -73,17 +73,17 @@ public class WeddingHallFrame extends BaseFrame {
 			if (!(i == 6 || i == 7))
 				tfs[i].setEnabled(false);
 		}
-		
+
 		tfs[6].addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
-					if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE) 
+					if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE)
 						Integer.parseInt(String.valueOf(e.getKeyChar()));
-					
-					if(((JTextField)e.getSource()).getText().length() > 0 && tfs[7].getText().length() > 0) 
+
+					if (((JTextField) e.getSource()).getText().length() > 0 && tfs[7].getText().length() > 0)
 						payBtn.setEnabled(true);
-					else 
+					else
 						payBtn.setEnabled(false);
 				} catch (Exception e2) {
 					errorMessage("인원수를 바르게 입력해주세요");
@@ -91,19 +91,18 @@ public class WeddingHallFrame extends BaseFrame {
 				}
 			}
 		});
-		
+
 		tfs[7].addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusGained(FocusEvent e) {
-				openFrame(new CalendarFrame(mainLabel.getText(), tfs[7],tfIv, ivBtn));
-				if(tfs[6].getText().length() > 0) 
+				openFrame(new CalendarFrame(mainLabel.getText(), tfs[7], tfIv, ivBtn));
+				if (tfs[6].getText().length() > 0)
 					payBtn.setEnabled(true);
-				else 
+				else
 					payBtn.setEnabled(false);
 			}
 		});
-		
-		
+
 		for (int i = 1; i <= 6; i++)
 			tfs[i - 1].setText(String.valueOf(whList[index][i]));
 
@@ -120,13 +119,14 @@ public class WeddingHallFrame extends BaseFrame {
 		tfIv.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyTyped(KeyEvent e) {
-				if(ivCheck) {
+				if (ivCheck) {
 					if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE)
 						e.consume();
+					tfIv.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_MASK), "none");
 				}
 			};
 		});
-		
+
 		payBtn.setEnabled(false);
 		ivBtn.setEnabled(false);
 		JPanel btnPanel = createComponent(new JPanel(new FlowLayout(FlowLayout.CENTER)), 350, 150);
@@ -238,9 +238,10 @@ public class WeddingHallFrame extends BaseFrame {
 			e.printStackTrace();
 		}
 	}
+
 	private void payBtnAct() {
-		if(Integer.parseInt(tfs[1].getText()) < Integer.parseInt(tfs[6].getText())) {
-			errorMessage("수용이원보다 작게 입력하세요.");
+		if (Integer.parseInt(tfs[1].getText()) < Integer.parseInt(tfs[6].getText())) {
+			errorMessage("수용인원보다 작게 입력하세요.");
 			return;
 		}
 		ui.whName = mainLabel.getText();
@@ -249,9 +250,10 @@ public class WeddingHallFrame extends BaseFrame {
 		ui.mealType = tfs[4].getText();
 		ui.ivNum = tfIv.getText().isEmpty() ? 0 : Integer.parseInt(tfIv.getText());
 		ui.date = tfs[7].getText();
-		
+
 		openFrame(new BillFrame(mainLabel.getText(), Integer.parseInt(tfs[2].getText()),
-		Integer.parseInt(tfs[5].getText())*Integer.parseInt(tfs[6].getText()), ui.ivNum == 0 ? 0 : 150000,ui));
+				Integer.parseInt(tfs[5].getText()) * Integer.parseInt(tfs[6].getText()), ui.ivNum == 0 ? 0 : 150000,
+				ui));
 	}
 
 	public static void main(String[] args) {

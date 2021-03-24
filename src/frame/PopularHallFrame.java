@@ -96,7 +96,7 @@ public class PopularHallFrame extends BaseFrame {
 								ResultSet rs = pst.executeQuery();
 								while (rs.next()) {
 									model.addRow(new Object[] { rs.getString("wh_Name"), rs.getString("wh_Add"),
-											rs.getString("wh_Price") });
+											String.format("%,d",rs.getInt("wh_Price"))+"원"});
 								}
 							} catch (Exception ex) {
 								ex.printStackTrace();
@@ -113,7 +113,7 @@ public class PopularHallFrame extends BaseFrame {
 								ResultSet rs = pst.executeQuery();
 								while (rs.next()) {
 									model.addRow(new Object[] { rs.getString("wh_Name"), rs.getString("wh_Add"),
-											rs.getString("wh_Price") });
+											String.format("%,d",rs.getInt("wh_Price"))+"원"});
 								}
 							} catch (Exception e2) {
 								e2.printStackTrace();
@@ -146,7 +146,7 @@ public class PopularHallFrame extends BaseFrame {
 				moveGraph(graphPanels[j], (int) (((float) cntList.get(j + index) / max) * maxHeight), j).start();
 				graphPanels[j].setBackground(colors[j]);
 				graphLabels[j].setText(nameList.get(j + index));
-				blockLabels[j].setText(nameList.get(j + index));
+				blockLabels[j].setText(nameList.get(j + index)+ ":" + cntList.get(j + index) + "개");
 			}
 			setSize(400, 400);
 			remove(scrollPanel);
@@ -179,7 +179,7 @@ public class PopularHallFrame extends BaseFrame {
 			graphPanels[j].setBounds(x[j], maxHeight - height, width, height);
 			graphPanels[j].setBackground(colors[j]);
 			graphLabels[j].setText(nameList.get(j + index));
-			blockLabels[j].setText(nameList.get(j + index));
+			blockLabels[j].setText(nameList.get(j + index)+ ":" + cntList.get(j + index) + "개");
 		}
 	}
 

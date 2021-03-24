@@ -49,7 +49,10 @@ public class BillFrame extends BaseFrame{
 			else
 				labels[i].setHorizontalAlignment(JLabel.RIGHT);
 		}
-		 
+		
+		if(ivPrice == 0)
+			labels[9].setEnabled(false);
+		
 		int arr[] = {4,6,2};
 		
 		for(int i=0,k=0;i<labels.length;i++) {

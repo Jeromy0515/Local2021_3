@@ -40,17 +40,29 @@ public class LoginFrame extends BaseFrame{
 	}
 	
 	private void login() {
-		if(isCorrect())
+		
+		if(idField.getText().isEmpty() || pwField.getText().isEmpty()) {
+			errorMessage("빈칸이 존재합니다.");
+			return;
+		}
+		
+		if(!isCorrect()) {
+			errorMessage("ID 또는 PW가 일치하지 않습니다.");
+			return;
+		}
 			openFrame(new MainFrame());
 	}
 	
 	private boolean isCorrect() {
-		try (PreparedStatement pst = conn.prepareStatement("select u_No from user where u_id = ? and u_Pw = ?")){
+		try (PreparedStatement pst = conn.prepareStatement("select u_No,u_Name from user where u_id = ? and u_Pw = ?")){
 			pst.setObject(1, idField.getText());
 			pst.setObject(2, pwField.getText());
 			ResultSet rs = pst.executeQuery();
 			if(rs.next()) {
+				informMessage(rs.getString("u_Name")+"님 환영합니다.");
 				getInformOfInvitation(rs.getInt("u_No"));
+				BaseFrame.user_No = rs.getInt("u_No");
+				System.out.println(user_No);
 				return true;
 			}
 		} catch (Exception e) {
@@ -71,7 +83,6 @@ public class LoginFrame extends BaseFrame{
 			ResultSet rs = pst.executeQuery();
 			if(rs.next()) {
 				informMessage(rs.getString("u_name")+"님의 결혼식이 D-"+rs.getInt("dDay")+"일 남았습니다.");
-				BaseFrame.user_No = rs.getInt("i_to");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
