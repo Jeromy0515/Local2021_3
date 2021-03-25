@@ -46,6 +46,7 @@ public class WeddingHallFrame extends BaseFrame {
 	public WeddingHallFrame(UserInform ui) {
 		super("웨딩홀", 950, 470);
 		
+		ivCheck = false;
 		this.ui = ui;
 		stop = false;
 
@@ -118,12 +119,14 @@ public class WeddingHallFrame extends BaseFrame {
 		tfIv.setHorizontalAlignment(JTextField.CENTER);
 		tfIv.addKeyListener(new KeyAdapter() {
 			@Override
-			public void keyTyped(KeyEvent e) {
-				if (ivCheck) {
-					if (e.getKeyCode() != KeyEvent.VK_BACK_SPACE)
-						e.consume();
-					tfIv.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_MASK), "none");
-				}
+			public void keyTyped(KeyEvent e) {//tfIv의 길이 1로제한 1,2,3만 입력가능
+				tfIv.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "none");
+				
+				if(tfIv.getText().length() > 0 || !(e.getKeyChar() == 49 || e.getKeyChar() == 50 || e.getKeyChar() == 51))
+					e.consume();
+				
+				if (ivCheck) 
+					e.consume();
 			};
 		});
 
@@ -222,10 +225,16 @@ public class WeddingHallFrame extends BaseFrame {
 
 	public void setWhList() { // 배열에 모든 웨딩홀에대한 정보 셋팅
 		try (PreparedStatement pst = conn
-				.prepareStatement("select wh_Name,wh_Add,wh_People,wh_Price, wty_Name, m_Name,m_Price\r\n"
-						+ "from weddinghall as wh\r\n" + "inner join division as d\r\n" + "on d.wh_No = wh.wh_No\r\n"
-						+ "inner join weddingtype as wty\r\n" + "on wty.wty_No = d.wty_No\r\n"
-						+ "inner join mealtype as mt\r\n" + "on d.m_No = mt.m_No\r\n" + "order by wh_Name asc;")) {
+				.prepareStatement(
+						"select wh_Name,wh_Add,wh_People,wh_Price, wty_Name, m_Name,m_Price\r\n"
+						+ "from weddinghall as wh\r\n"
+						+ "inner join division as d\r\n"
+						+ "on d.wh_No = wh.wh_No\r\n"
+						+ "inner join weddingtype as wty\r\n"
+						+ "on wty.wty_No = d.wty_No\r\n"
+						+ "inner join mealtype as mt\r\n"
+						+ "on d.m_No = mt.m_No\r\n"
+						+ "order by wh_Name asc;")) {
 			ResultSet rs = pst.executeQuery();
 			int cnt = 0;
 			while (rs.next()) {

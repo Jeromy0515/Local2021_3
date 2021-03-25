@@ -49,7 +49,6 @@ public class MainFrame extends BaseFrame {
 				centerPanel.add(createComponent(new WhPanel(rs.getString("wh_Name"), rs.getInt("count"),
 						rs.getInt("wh_Price"), rs.getString("wh_Add")), 732, 150));
 			}
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

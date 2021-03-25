@@ -85,7 +85,7 @@ public class CalendarFrame extends BaseFrame{
 				else if(id%7==6) 
 					btn.setForeground(Color.blue);
 				
-				if(date.getMonthValue() == now.getMonthValue() && i+1<=now.getDayOfMonth())
+				if(date.getMonthValue() == now.getMonthValue() && i+1<=now.getDayOfMonth() && date.getYear() == now.getYear()) //현재날짜 +1의 날짜부터 활성화
 					btn.setEnabled(false);
 				
 				for (int j = 0; j < dayList.size(); j++) {
@@ -117,9 +117,10 @@ public class CalendarFrame extends BaseFrame{
 				+ "from payment as p\r\n"
 				+ "inner join weddinghall wh\r\n"
 				+ "on wh.wh_No = p.wh_No\r\n"
-				+ "where wh_Name like concat('%',?,'%') and month(p_date) = ?;")){
+				+ "where wh_Name like concat('%',?,'%') and month(p_date) = ? and year(p_Date) = ?")){
 			pst.setObject(1, whName);
 			pst.setObject(2, date.getMonthValue());
+			pst.setObject(3, date.getYear());
 			ResultSet rs = pst.executeQuery();
 			while(rs.next()) {
 				list.add(rs.getInt("date"));
@@ -134,6 +135,7 @@ public class CalendarFrame extends BaseFrame{
 		closeFrame();
 		tfDate.setText(String.format("%d-%02d-%02d", date.getYear(),date.getMonthValue(),Integer.parseInt(btnText)));
 		tfIv.setText("");
+		WeddingHallFrame.ivCheck = false;
 		btn.setEnabled(true);
 	}	
 	
@@ -141,7 +143,7 @@ public class CalendarFrame extends BaseFrame{
 		date = date.minusMonths(1);
 		setCalendar();
 		ymLabel.setText(date.format(DateTimeFormatter.ofPattern("yyyy 년 MM 월")));
-		if(date.getMonthValue() == now.getMonthValue())
+		if(date.getMonthValue() == now.getMonthValue() && date.getYear() == now.getYear())
 			previousBtn.setEnabled(false);
 		revalidate();
 	}
