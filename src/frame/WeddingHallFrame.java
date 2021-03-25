@@ -111,7 +111,7 @@ public class WeddingHallFrame extends BaseFrame {
 		int cnt = 0;
 		for (String text : "주소,수용인원,홀사용료,예식형태,식사종류,식사비용,인원수,날짜".split(",")) {
 			fieldPanel.add(createLabel(text));
-			fieldPanel.add(tfs[cnt]);
+			fieldPanel.add(tfs[cnt]); 
 			cnt++;
 		}
 
