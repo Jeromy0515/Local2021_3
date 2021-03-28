@@ -37,7 +37,9 @@ public class PaymentConfirmFrame extends BaseFrame {
 
 		numField.setBorder(BorderFactory.createLineBorder(Color.black, 2));
 		numField.setHorizontalAlignment(JTextField.CENTER);
-		numField.setEnabled(false);
+		numField.setEditable(false);
+		numField.setBackground(Color.white);
+//		numField.setEnabled(false);
 		
 		add(btnPanel);
 

@@ -129,7 +129,6 @@ public class WeddingHallFrame extends BaseFrame {
 					e.consume();
 			};
 		});
-
 		payBtn.setEnabled(false);
 		ivBtn.setEnabled(false);
 		JPanel btnPanel = createComponent(new JPanel(new FlowLayout(FlowLayout.CENTER)), 350, 150);
