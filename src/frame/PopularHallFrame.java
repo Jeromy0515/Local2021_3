@@ -2,10 +2,9 @@ package frame;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
-import java.sql.PreparedStatement;
+import java.awt.event.MouseEvent;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
@@ -16,235 +15,207 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
-public class PopularHallFrame extends BaseFrame {
-	JPanel graphPanels[] = new JPanel[3];
-	JLabel graphLabels[] = new JLabel[3];
-	JPanel blockPanels[] = new JPanel[3];
-	JLabel blockLabels[] = new JLabel[3];
+import db.CM;
 
-	Color colors[] = { Color.black, Color.blue, Color.red };
-
-	JButton previousBtn = createButton("◀", e -> previousBtnAct());
-	JButton nextBtn = createButton("▶", e -> nextBtnAct());
-
+public class PopularHallFrame extends BaseFrame{
+	
+	JPanel graphPanel[] = new JPanel[3];
+	JLabel graphLabel[] = new JLabel[3];
+	JPanel blockPanel[] = new JPanel[3];
+	JLabel blockLabel[] = new JLabel[3];
+	
+	JComboBox<String> comboBox = createComponent(new JComboBox<String>(),250,30);
+	
+	JButton previousBtn = createButton("◀" ,e->btnAct(e.getActionCommand())), nextBtn = createButton("▶", e->btnAct(e.getActionCommand()));
+	
+	DefaultTableModel model = new DefaultTableModel(null,new Object[] {"이름","주소","홀사용료"});
+	JTable table = new JTable(model);
+	JScrollPane scrollPane = createComponent(new JScrollPane(table),350,250);
+	JPanel scrollPanel = new JPanel();
+	
+	Color colors[] = {Color.black,Color.blue,Color.red};
+	
 	ArrayList<Integer> cntList = new ArrayList<Integer>();
 	ArrayList<String> nameList = new ArrayList<String>();
-	JComboBox<String> comboBox = createComponent(new JComboBox<String>(), 250, 30);
-
-	JPanel centerPanel;
-
-	int x[] = { 25, 95, 165 }, y = 5; // x,width 고정
-	int width = 40, height; // y,height 변동
-	int maxHeight = 250;
-
-	int index = 0;
+	
 	int max;
-
-	DefaultTableModel model = new DefaultTableModel(null, new Object[] { "이름", "주소", "홀사용료" });
-	JTable table = new JTable(model);
-	JScrollPane scrollPane = new JScrollPane(table);
-	JPanel scrollPanel;
-
+	int index = 0;
+	int x[] = {25,95,165};
+	
 	public PopularHallFrame() {
-		super("인기 웨딩홀", 400, 400);
-
+		super("인기 웨딩홀", 400,400);
+		
 		JPanel northPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		centerPanel = new JPanel(null);
-		JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-
+		northPanel.add(comboBox);
 		comboBox.addItem("인기 웨딩 종류");
 		comboBox.addItem("인기 식사 종류");
-		comboBoxAct(centerPanel);
-		max = cntList.get(0);
-
-		scrollPanel = new JPanel();
-		scrollPanel.add(scrollPane);
-		scrollPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 30));
-		scrollPane.setPreferredSize(new Dimension(350, 250));
-
+		comboBox.addActionListener(e->comboBoxAct());
+		JPanel centerPaenl = new JPanel(null);
+		
 		int h = 10;
-		for (int i = 0; i < graphPanels.length; i++) {
-			graphPanels[i] = new JPanel();
-			graphPanels[i].setBackground(colors[i]);
-			graphPanels[i].setBorder(BorderFactory.createLineBorder(Color.black));
-			graphLabels[i] = new JLabel(nameList.get(i + index));
-			graphLabels[i].setBounds(x[i], 260, 65, 20);
-			moveGraph(graphPanels[i], (int) (((float) cntList.get(i + index) / max) * maxHeight), i).start();
-			centerPanel.add(graphPanels[i]);
-			centerPanel.add(graphLabels[i]);
-			blockPanels[i] = new JPanel();
-			blockLabels[i] = new JLabel(nameList.get(i + index) + ":" + cntList.get(i + index) + "개");
-			blockPanels[i].setBackground(colors[i]);
-			int id = i + index;
-			int i2 = i;
-			blockPanels[i].addMouseListener(new MouseAdapter() {
-				public void mouseClicked(java.awt.event.MouseEvent e) {
-					if (SwingUtilities.isLeftMouseButton(e)) {
-						model.setNumRows(0);
-						if (comboBox.getSelectedIndex() == 0) {
-							try (PreparedStatement pst = conn
-									.prepareStatement("select wh_Name,wh_Add,wh_Price from weddinghall as wh \r\n"
-											+ "inner join division as d \r\n" 
-											+ "on d.wh_No = wh.wh_No \r\n"
-											+ "inner join weddingtype as wty \r\n"
-											+ "on d.wty_No = wty.wty_No\r\n"
-											+ "where wty.wty_Name like concat('%',?,'%');")) {
-								pst.setObject(1, nameList.get(id));
-								ResultSet rs = pst.executeQuery();
-								while (rs.next()) {
-									model.addRow(new Object[] { rs.getString("wh_Name"), rs.getString("wh_Add"),
-											String.format("%,d",rs.getInt("wh_Price"))+"원"});
-								}
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-						} else {
-							try (PreparedStatement pst = conn
-									.prepareStatement("select wh_Name,wh_Add,wh_Price from weddinghall as wh\r\n"
-											+ "inner join division as d\r\n"
-											+ "on d.wh_No = wh.wh_No\r\n"
-											+ "inner join mealtype as m\r\n"
-											+ "on d.m_No = m.m_No\r\n"
-											+ "where m_Name like concat('%',?,'%');")) {
-								pst.setObject(1, nameList.get(id));
-								ResultSet rs = pst.executeQuery();
-								while (rs.next()) {
-									model.addRow(new Object[] { rs.getString("wh_Name"), rs.getString("wh_Add"),
-											String.format("%,d",rs.getInt("wh_Price"))+"원"});
-								}
-							} catch (Exception e2) {
-								e2.printStackTrace();
-							}
-						}
-						for (int j = 0; j < 3; j++) {
-							if (graphPanels[j].getBackground().equals(Color.magenta))
-								graphPanels[j].setBackground(colors[j]);
-							graphPanels[i2].setBackground(Color.magenta);
-						}
-						setSize(810, 400);
-
-						add(scrollPanel, BorderLayout.EAST);
-					}
-				};
-
+		for (int i = 0; i < blockLabel.length; i++) {
+			int j=i;
+			graphPanel[i] = createComponent(new JPanel(), i, i);
+			graphPanel[i].setBackground(colors[i]);
+			graphPanel[i].setBorder(new LineBorder(Color.black));
+			graphLabel[i] = createComponent(new JLabel(), x[i],260,65,20);
+			blockPanel[i] = createComponent(new JPanel(), 250,120+h,10,10);
+			blockPanel[i].setBackground(colors[i]);
+			blockPanel[i].addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					blockPanelAct(j);
+				}
 			});
-
-			blockPanels[i].setBounds(250, 120 + h, 10, 10);
-			blockLabels[i].setBounds(270, 120 + h, 100, 12);
-			centerPanel.add(blockPanels[i]);
-			centerPanel.add(blockLabels[i]);
-			h += 20;
+			blockLabel[i] = createComponent(new JLabel(), 270,120+h,100,12);
+			centerPaenl.add(graphPanel[i]);
+			centerPaenl.add(graphLabel[i]);
+			centerPaenl.add(blockPanel[i]);
+			centerPaenl.add(blockLabel[i]);
+			h+=20;
 		}
-
-		comboBox.addItemListener(e -> {
-			comboBoxAct(centerPanel);
-//			revalipaint();
-			for (int j = 0; j < 3; j++) {
-				moveGraph(graphPanels[j], (int) (((float) cntList.get(j + index) / max) * maxHeight), j).start();
-				graphPanels[j].setBackground(colors[j]);
-				graphLabels[j].setText(nameList.get(j + index));
-				blockLabels[j].setText(nameList.get(j + index)+ ":" + cntList.get(j + index) + "개");
-			}
-			setSize(400, 400);
-			remove(scrollPanel);
-		});
-		northPanel.add(comboBox);
-
-		previousBtn.setEnabled(false);
+		
+		JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		southPanel.add(previousBtn);
 		southPanel.add(nextBtn);
-
-		add(northPanel, BorderLayout.NORTH);
-		add(centerPanel, BorderLayout.CENTER);
-		add(southPanel, BorderLayout.SOUTH);
+		
+		scrollPanel.add(scrollPane);
+		scrollPanel.setBorder(BorderFactory.createEmptyBorder(0,0,20,30));
+		
+		add(northPanel,BorderLayout.NORTH);
+		add(centerPaenl,BorderLayout.CENTER);
+		add(southPanel,BorderLayout.SOUTH);
+		
+		comboBoxAct();
 	}
-
-	private void previousBtnAct() {
-		index--;
-		if (index == 0)
-			previousBtn.setEnabled(false);
-
-		revalipaint();
-		setSize(400, 400);
-		remove(scrollPanel);
-		nextBtn.setEnabled(true);
-	}
-
-	private void revalipaint() {
-		for (int j = 0; j < 3; j++) {
-			int height = (int) (((float) cntList.get(j + index) / max) * maxHeight);
-			graphPanels[j].setBounds(x[j], maxHeight - height, width, height);
-			graphPanels[j].setBackground(colors[j]);
-			graphLabels[j].setText(nameList.get(j + index));
-			blockLabels[j].setText(nameList.get(j + index)+ ":" + cntList.get(j + index) + "개");
-		}
-	}
-
-	private void nextBtnAct() {
-		index++;
-		if (index == 7)
-			nextBtn.setEnabled(false);
-
-		revalipaint();
-		setSize(400, 400);
-		remove(scrollPanel);
-		previousBtn.setEnabled(true);
-	}
-
-	private void comboBoxAct(JPanel panel) {
+	
+	private void comboBoxAct() {
+		index = 0;
 		cntList.clear();
 		nameList.clear();
-		index = 0;
-		String sql;
-		if (comboBox.getSelectedItem().equals("인기 웨딩 종류")) {
-			sql = "select count(*) as count,wty.wty_Name as name \r\n"
-					+ "from payment as p \r\n"
-					+ "inner join weddingtype as wty \r\n"
-					+ "on p.wty_No = wty.wty_No \r\n"
-					+ "group by wty.wty_No \r\n"
-					+ "order by count desc;";
-			nextBtn.setEnabled(true);
-		} else {
-			sql = "select m.m_Name as name,count(*) as count \r\n"
-					+ "from payment as p \r\n"
-					+ "inner join mealtype as m \r\n"
-					+ "on p.m_No = m.m_No \r\n"
-					+ "group by m.m_No \r\n"
-					+ "order by count desc;";
-			nextBtn.setEnabled(false);
+		
+		CM cm = new CM();
+		cm.connect();
+		ResultSet rs = null;
+		if(comboBox.getSelectedIndex() == 0) {
+			rs = cm.executeQuery("select count(*) as count,wty_Name as name from payment as p "
+					+ "inner join weddingtype as wty on p.wty_No = wty.wty_No group by wty.wty_No order by count desc;");
 			previousBtn.setEnabled(false);
+			nextBtn.setEnabled(true);
+		}else if(comboBox.getSelectedIndex() == 1) {
+			rs = cm.executeQuery("select count(*) as count,m_Name as name from payment as p "
+					+ "inner join mealtype as m on m.m_No = p.m_no group by m.m_no order by count desc;");
+			previousBtn.setEnabled(false);
+			nextBtn.setEnabled(false);
 		}
-
-		try (PreparedStatement pst = conn.prepareStatement(sql)) {
-			ResultSet rs = pst.executeQuery();
-			while (rs.next()) {
+		try {
+			while(rs.next()) {
 				cntList.add(rs.getInt("count"));
 				nameList.add(rs.getString("name"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		cm.close();
 		max = cntList.get(0);
+		for(int i=0;i<graphPanel.length;i++) {
+			moveGraph(graphPanel[i], i).start();
+		}
+		change();
 	}
-
-	private Thread moveGraph(JPanel panel, int height, int i) {
-		return new Thread(() -> {
+	
+	void setLabels() {
+		for(int i=0;i<3;i++) {
+			graphLabel[i].setText(nameList.get(i+index));
+			blockLabel[i].setText(nameList.get(i+index)+":"+cntList.get(i+index)+"개");
+		}
+	}
+	
+	private void blockPanelAct(int i) {
+		 model.setNumRows(0);
+		 setSize(800,400);
+		 add(scrollPanel,BorderLayout.EAST);
+		 ResultSet rs = null;
+		 CM cm = new CM();
+		 cm.connect();
+		 if(comboBox.getSelectedIndex() == 0) {
+			 rs = cm.executeQuery("select * from weddinghall as wh inner join division as d on d.wh_No = wh.wh_no "
+			 		+ "inner join weddingtype as wty on d.wty_no = wty.wty_no where wty.wty_name = ?",nameList.get(i+index));
+		 }else if(comboBox.getSelectedIndex() == 1) {
+			 rs = cm.executeQuery("select * from weddinghall as wh inner join division as d on d.wh_no = wh.wh_no "
+			 		+ "inner join mealtype as m on m.m_no = d.m_no where m.m_name = ?", nameList.get(i+index));
+		 }
+		 
+		 try {
+			while(rs.next()) {
+				model.addRow(new Object[] {rs.getString("wh_name"),rs.getString("wh_add"),format(rs.getInt("wh_price"))+"원"});
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		 setGraphColor();
+		 graphPanel[i].setBackground(Color.magenta);
+		 cm.close();
+	}
+	
+	private void setGraphColor() {
+		for(int i = 0;i<graphPanel.length;i++) {
+			if(graphPanel[i].getBackground().equals(Color.magenta)) {
+				graphPanel[i].setBackground(colors[i]);
+			}
+		}
+	}
+	
+	Thread moveGraph(JPanel panel,int i) {
+		return new Thread(()->{
 			try {
-				for (int j = 1; j < height; j++) {
-					panel.setBounds(x[i], maxHeight - height, width, j);
-					Thread.sleep(1000 / height);
+				int height = (int)(((float)cntList.get(i+index) / max) * 250);
+				for(int j=0;j<height;j++) {
+					panel.setBounds(x[i],250-height,40,j);
+					Thread.sleep(1000/height);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
 	}
-
+	
+	private void btnAct(String ac) {
+		if(ac.equals("◀")) {
+			index--;
+			if(index == 0)
+				previousBtn.setEnabled(false);
+			nextBtn.setEnabled(true);
+		}else {
+			index++;
+			if(index == 7) 
+				nextBtn.setEnabled(false);
+			previousBtn.setEnabled(true);
+		}
+		change();
+		for (int i = 0; i < graphPanel.length; i++) {
+			int height = (int)(((float)cntList.get(i+index) / max) * 250);
+			graphPanel[i].setBounds(x[i],250-height,40,height);
+		}
+	}
+	
+	void change() {
+		setSize(400,400);
+		remove(scrollPanel);
+		setGraphColor();
+		setLabels();
+	}
+	
 	public static void main(String[] args) {
 		new PopularHallFrame().setVisible(true);
 	}
-
+	
+	@Override
+	public void closedAct() {
+		previousFrame();
+	}
 }
