@@ -218,5 +218,4 @@ public class PopularHallFrame extends BaseFrame{
 	public void closedAct() {
 		previousFrame();
 	}
-	
 }
