@@ -2,121 +2,97 @@ package frame;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.sql.PreparedStatement;
+import java.awt.event.MouseMotionAdapter;
 import java.sql.ResultSet;
 import java.util.Random;
 
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import model.UserInform;
+import db.CM;
+import model.WhInform;
 
-public class SignFrame extends BaseFrame {
-	boolean signCheck = false;
-	static StringBuilder pmNum = new StringBuilder();
-	JButton okBtn = createComponent(createButtonWithoutMargin("확인", e -> okBtnAct()), 60, 30);
-
-	UserInform ui;
-
-	public SignFrame(UserInform ui) {
-		super("서명", 200, 250);
-
-		this.ui = ui;
-
-		JPanel signPanel = new SignPanel();
+public class SignFrame extends BaseFrame{
+	JPanel signPanel = new JPanel();
+	boolean signCheck;
+	int pmNum;
+	WhInform wi;
+	public SignFrame(WhInform wi) {
+		super("서명", 200,250);
+		this.wi = wi;
 		signPanel.setBackground(Color.white);
-
-		JPanel btnPanel = new JPanel();
-		btnPanel.add(okBtn);
-
-		add(signPanel, BorderLayout.CENTER);
-		add(btnPanel, BorderLayout.SOUTH);
+		signPanel.addMouseMotionListener(new MouseMotionAdapter() {
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				signPanel.getGraphics().fillOval(e.getX(), e.getY(), 12,12);
+				signCheck = true;
+			}
+		});
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+		btnPanel.add(createButton("확인", e->confirm()));
+		add(signPanel,BorderLayout.CENTER);
+		add(btnPanel,BorderLayout.SOUTH);
 	}
-
-	private class SignPanel extends JPanel implements MouseMotionListener {
-
-		public SignPanel() {
-			setLayout(new BorderLayout());
-			addMouseMotionListener(this);
-			JPanel panel = new JPanel();
-			panel.setBackground(Color.white);
-			add(panel, BorderLayout.CENTER);
-		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			getGraphics().fillOval(e.getX() - 5, e.getY(), 15, 15);
-			signCheck = true;
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent e) {
-		}
-	}
-
-	public static void main(String[] args) {
-		new SignFrame(null).setVisible(true);
-	}
-
-	private void okBtnAct() {
-		if (!signCheck) {
-			errorMessage("서명을 하지 않았습니다.");
+	
+	private void confirm() {
+		if(!signCheck) {
+			eMsg("서명을 하지 않았습니다.", "경고");
 			return;
 		}
-		updateRandNum();
-		try (PreparedStatement pst = conn.prepareStatement("select p_No from payment")) {
-			ResultSet rs = pst.executeQuery();
-			while (rs.next()) {
-				if (String.valueOf(rs.getInt("p_No")).equals(pmNum.toString()))
-					updateRandNum();
+		
+		createRandNum();
+		iMsg("결제가 완료되었습니다.\n결제번호:"+pmNum, "메시지");
+		CM cm = new CM();
+		cm.connect();
+		int whNo = Integer.parseInt(cm.getOneSqlResult("select * from weddinghall where wh_Name = ?", "wh_No", wi.whName));
+		int wtyNo = Integer.parseInt(cm.getOneSqlResult("select * from weddingtype where wty_Name = ?", "wty_No", wi.wty));
+		int mtyNo = Integer.parseInt(cm.getOneSqlResult("select * from mealtype where m_Name = ?", "m_No", wi.mty));
+		
+		cm.execute("insert into payment values (?,?,?,?,?,?,?,?)", pmNum,whNo,Integer.parseInt(WeddingHallFrame.tfs[6].getText()),
+				wtyNo,mtyNo,WeddingHallFrame.tfIv.getText().isEmpty() ? 0 : Integer.parseInt(WeddingHallFrame.tfIv.getText()),WeddingHallFrame.tfs[7].getText(),uNo);
+		cm.close();
+		if(JOptionPane.showConfirmDialog(null, "청첩장을 보내겠습니까?","정보",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+			openFrame(new FriendLIstFrame(pmNum));
+		}
+	}
+	
+	
+	private void createRandNum() {
+		StringBuilder builder = new StringBuilder();
+		Random rand = new Random();
+		
+		for(int i=0;i<4;i++) {
+			builder.append(rand.nextInt(10));
+		}
+		
+		int randNum = Integer.parseInt(builder.toString());
+		
+		CM cm = new CM();
+		cm.connect();
+		
+		ResultSet rs = cm.executeQuery("select * from payment");
+		try {
+			while(rs.next()) {
+				if(rs.getInt("p_no") == randNum) {
+					createRandNum();
+				}else {
+					pmNum = randNum;
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-		JOptionPane.showMessageDialog(null, "결제가 완료되었습니다.\n결제번호:" + pmNum, "메시지", JOptionPane.INFORMATION_MESSAGE);
-		try (PreparedStatement pst = conn.prepareStatement("insert into payment values (?,?,?,?,?,?,?,?)")) {
-			pst.setObject(1, pmNum.toString());
-			pst.setObject(2, getfk("select * from weddinghall where wh_Name = '" + ui.whName + "'", "wh_No"));
-			pst.setObject(3, ui.people);
-			pst.setObject(4, getfk("select * from weddingtype where wty_Name like '%" + ui.whType + "%'", "wty_No"));
-			pst.setObject(5, getfk("select * from mealType where m_Name = '" + ui.mealType + "'", "m_No"));
-			pst.setObject(6, ui.ivNum);
-			pst.setObject(7, ui.date);
-			pst.setObject(8, user_No);
-
-			pst.execute();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		if (JOptionPane.showConfirmDialog(null, "청접장을 보내겠습니까?", "정보", JOptionPane.YES_NO_OPTION) == 0) {
-			openFrame(new FriendListFrame(pmNum.toString()));
-		} else {
-			openFrame(new MainFrame());
-		}
+		
+		cm.close();
 	}
-
-	int getfk(String sql, String col) {
-		try (PreparedStatement pst = conn.prepareStatement(sql)) {
-			ResultSet rs = pst.executeQuery();
-			if (rs.next())
-				return rs.getInt(col);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return 0;
+	
+	@Override
+	public void closedAction() {
+		previousFrame();
 	}
-
-	private void updateRandNum() {
-		pmNum.delete(0, pmNum.length());
-		Random rand = new Random();
-		for (int i = 0; i < 4; i++) {
-			pmNum.append(rand.nextInt(10));
-		}
+	public static void main(String[] args) {
+		new SignFrame(null).setVisible(true);
 	}
-
 }
